@@ -1,0 +1,8 @@
+%ul.content-list.issues-list.issuable-list
+  = render partial: "projects/issues/issue", collection: @issues
+  - if @issues.blank?
+    %li
+      .nothing-here-block No issues to show
+
+- if @issues.present?
+  = paginate @issues, theme: "gitlab"

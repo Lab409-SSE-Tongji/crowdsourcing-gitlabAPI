@@ -1,0 +1,41 @@
+html {
+  overflow-y: scroll;
+
+  &.touch .tooltip { display: none !important; }
+}
+
+body {
+  &.navless {
+    background-color: white !important;
+  }
+}
+
+.container {
+  padding-top: 0;
+  z-index: 5;
+}
+
+.container .content {
+  margin: 0;
+}
+
+.navless-container {
+  margin-top: $header-height;
+  padding-top: $gl-padding * 2;
+}
+
+.container-limited {
+  max-width: $fixed-layout-width;
+}
+
+
+/* The following prevents side effects related to iOS Safari's implementation of -webkit-overflow-scrolling: touch,
+which is applied to the body by jquery.nicescroling plugin to force hardware acceleration for momentum scrolling. Side
+effects are commonly related to inconsisent z-index behavior (e.g. tooltips). By applying the following to direct children
+of the body element here, we negate cascading side effects but allow momentum scrolling to be applied to the body  */
+
+.navbar,
+.page-gutter,
+.page-with-sidebar {
+  -webkit-overflow-scrolling: auto;
+}

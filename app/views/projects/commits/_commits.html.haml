@@ -1,0 +1,12 @@
+- ref = local_assigns.fetch(:ref)
+- commits, hidden = limited_commits(@commits)
+
+- commits.chunk { |c| c.committed_date.in_time_zone.to_date }.each do |day, commits|
+  %li.commit-header= "#{day.strftime('%d %b, %Y')} #{pluralize(commits.count, 'commit')}"
+  %li.commits-row
+    %ul.list-unstyled.commit-list
+      = render commits, project: project, ref: ref
+
+- if hidden > 0
+  %li.alert.alert-warning
+    #{number_with_delimiter(hidden)} additional commits have been omitted to prevent performance issues.

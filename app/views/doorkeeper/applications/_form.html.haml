@@ -1,0 +1,21 @@
+= form_for application, url: doorkeeper_submit_path(application), html: {role: 'form'} do |f|
+  = form_errors(application)
+
+  .form-group
+    = f.label :name, class: 'label-light'
+    = f.text_field :name, class: 'form-control', required: true
+
+  .form-group
+    = f.label :redirect_uri, class: 'label-light'
+    = f.text_area :redirect_uri, class: 'form-control', required: true
+
+    %span.help-block
+      Use one line per URI
+    - if Doorkeeper.configuration.native_redirect_uri
+      %span.help-block
+        Use
+        %code= Doorkeeper.configuration.native_redirect_uri
+        for local tests
+
+  .prepend-top-default
+    = f.submit 'Save application', class: "btn btn-create"

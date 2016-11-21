@@ -1,0 +1,81 @@
+= content_for :head do
+  = stylesheet_link_tag 'mailers/repository_push_email'
+
+%h3
+  #{@message.author_name} #{@message.action_name} #{@message.ref_type} #{@message.ref_name}
+  at #{link_to(@message.project_name_with_namespace, namespace_project_url(@message.project_namespace, @message.project))}
+
+- if @message.compare
+  - if @message.reverse_compare?
+    %p
+      %strong WARNING:
+      The push did not contain any new commits, but force pushed to delete the commits and changes below.
+
+  %h4
+    = @message.reverse_compare? ? "Deleted commits:" : "Commits:"
+
+  %ul
+    - @message.commits.each do |commit|
+      %li
+        %strong #{link_to(commit.short_id, namespace_project_commit_url(@message.project_namespace, @message.project, commit))}
+        %div
+          %span by #{commit.author_name}
+          %i at #{commit.committed_date.to_s(:iso8601)}
+        %pre.commit-message
+          = commit.safe_message
+
+  %h4 #{pluralize @message.diffs_count, "changed file"}:
+
+  %ul
+    - @message.diffs.each_with_index do |diff, i|
+      %li.file-stats
+        %a{href: "#{@message.target_url if @message.disable_diffs?}#diff-#{i}" }
+          - if diff.deleted_file
+            %span.deleted-file
+              &minus;
+              = diff.old_path
+          - elsif diff.renamed_file
+            = diff.old_path
+            &rarr;
+            = diff.new_path
+          - elsif diff.new_file
+            %span.new-file
+              &#43;
+              = diff.new_path
+          - else
+            = diff.new_path
+
+  - unless @message.disable_diffs?
+    - diff_files = @message.diffs
+
+    - if @message.compare_timeout
+      %h5 The diff was not included because it is too large.
+    - else
+      %h4 Changes:
+      - diff_files.each_with_index do |diff_file, i|
+        %li{id: "diff-#{i}"}
+          %a{href: @message.target_url + "#diff-#{i}"}<
+            - if diff_file.deleted_file
+              %strong<
+                = diff_file.old_path
+              deleted
+            - elsif diff_file.renamed_file
+              %strong<
+                = diff_file.old_path
+              &rarr;
+              %strong<
+                = diff_file.new_path
+            - else
+              %strong<
+                = diff_file.new_path
+          - if diff_file.too_large?
+            The diff for this file was not included because it is too large.
+          - else
+            %hr
+            - blob = diff_file.blob
+            - if blob && blob.respond_to?(:text?) && blob_text_viewable?(blob)
+              %table.code.white
+                = render partial: "projects/diffs/line", collection: diff_file.highlighted_diff_lines, as: :line, locals: { diff_file: diff_file, plain: true, email: true }
+            - else
+              No preview for this file type
+          %br

@@ -1,0 +1,7 @@
+.panel.panel-default
+  .panel-heading
+    Users with access to
+    %strong #{@project.name}
+    %span.badge= @project_members.total_count
+  %ul.content-list
+    = render partial: 'shared/members/member', collection: members, as: :member
