@@ -57,6 +57,11 @@ module API
       expose :http_url_to_repo, :web_url
       expose :name, :name_with_namespace
       expose :path, :path_with_namespace
+
+      expose :visibility_level
+
+      expose :users, as: :members, using: Entities::UserBasic #, as: :member #, using: Entities::UserBasic
+
     end
 
     class SharedGroup < Grape::Entity
@@ -429,6 +434,7 @@ module API
           end
         end
       end
+      expose :users, as: :members, using: Entities::UserBasic
     end
 
     class LabelBasic < Grape::Entity
