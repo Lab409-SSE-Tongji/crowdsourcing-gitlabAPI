@@ -28,14 +28,22 @@ module API
         path = params[:path] || nil
 
         commit = user_project.commit(ref)
+        repo = user_project.repository
         not_found!('Tree') unless commit
 
-        #present tree.sorted_entries, with: Entities::RepoTreeObject
-        status(200)
-        {
-          tree.sorted_entries
-        }
+        tree = user_project.repository.tree(commit.id, path)
+        entries = tree.sorted_entries
 
+        commits = Array.new
+        entries.each do |entry|
+          commitId = repo.last_commit_for_path(commit.sha, entry.path).id
+          commitTemp = user_project.commit(commitId)
+          commits << commitTemp
+        end
+
+        present :number,entries.size
+        present :entry,entries#, with: Entities::RepoTreeObject, as: :entry
+        present :commit,commits#, with: Entites::RepoCommitDetail, as: :commit
       end
 
       # Get a raw file contents
