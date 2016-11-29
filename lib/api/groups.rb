@@ -83,8 +83,13 @@ module API
       # Example Request:
       #   GET /groups/:id
       get ":id" do
+        get ":id" do
         group = find_group(params[:id])
-        present group, with: Entities::GroupDetail
+        users = group.users
+        present :groups, group, with: Entities::GroupDetail
+        present :members, users, with: Entities::Member, source: group
+      end
+
       end
 
       # Remove group
