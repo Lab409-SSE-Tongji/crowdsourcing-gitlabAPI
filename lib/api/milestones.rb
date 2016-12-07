@@ -31,7 +31,30 @@ module API
         milestones = filter_milestones_state(milestones, params[:state])
         milestones = filter_by_iid(milestones, params[:iid]) if params[:iid].present?
 
-        present paginate(milestones), with: Entities::Milestone
+        issueNo = Array.new
+        issueDoneNo = Array.new
+        milestones.each do |milestone|
+          temp = user_project.milestones.find(milestone.id)
+          finder_params = {
+            project_id: user_project.id,
+            milestone_title: milestone.title
+          }
+          issues = IssuesFinder.new(current_user, finder_params).execute
+          issueNo << issues.size
+          finished = 0
+          issues.each do |issue|
+            if issue.state == 'closed'
+                finished = finished + 1
+            end
+          end
+          issueDoneNo << finished
+        end
+
+        present :number, milestones.size
+        present :milestones, milestones, with: Entities::Milestone
+        present :issueNo, issueNo
+        present :issueDoneNo, issueDoneNo
+
       end
 
       # Get a single project milestone
@@ -45,7 +68,15 @@ module API
         authorize! :read_milestone, user_project
 
         @milestone = user_project.milestones.find(params[:milestone_id])
-        present @milestone, with: Entities::Milestone
+        finder_params = {
+          project_id: user_project.id,
+          milestone_title: @milestone.title
+        }
+
+        issues = IssuesFinder.new(current_user, finder_params).execute
+
+        present :milestone, @milestone, with: Entities::Milestone
+        present :issues, issues, with: Entities::Issue, current_user: current_user
       end
 
       # Create a new project milestone
