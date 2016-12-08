@@ -125,6 +125,15 @@ module API
         end
       end
 
+      delete ":id/milestones/:milestone_id" do
+        authorize! :admin_milestone, user_project
+        #attrs = attributes_for_keys [:title, :description, :due_date, :state_event]
+        milestone = user_project.milestones.find(params[:milestone_id])
+        ::Milestones::DestroyService.new(user_project, current_user).execute(milestone)
+        present :deleted, "success"
+      end
+
+
       # Get all issues for a single project milestone
       #
       # Parameters:
