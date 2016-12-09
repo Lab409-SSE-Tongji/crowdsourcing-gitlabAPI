@@ -3,6 +3,25 @@ module API
   class Labels < Grape::API
     before { authenticate! }
 
+    helpers do
+      def filter_issues_state(issues, state)
+        case state
+        when 'opened' then issues.opened
+        when 'closed' then issues.closed
+        else issues
+        end
+      end
+
+      def filter_issues_labels(issues, labels)
+        issues.includes(:labels).where('labels.title' => labels.split(','))
+      end
+
+      def filter_issues_milestone(issues, milestone)
+        issues.includes(:milestone).where('milestones.title' => milestone)
+      end
+    end
+
+
     params do
       requires :id, type: String, desc: 'The ID of a project'
     end
@@ -12,6 +31,13 @@ module API
       end
       get ':id/labels' do
         present available_labels, with: Entities::Label, current_user: current_user
+
+        issues = user_project.issues.inc_notes_with_associations.visible_to_user(current_user)
+        unless params[:milestone].nil?
+          issues = filter_issues_milestone(issues, params[:milestone])
+        end
+
+        present :issues, issues, with: Entities::Issue, current_user: current_user
       end
 
       desc 'Create a new label' do
